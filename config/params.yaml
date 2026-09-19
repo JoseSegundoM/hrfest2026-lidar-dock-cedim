@@ -1,0 +1,76 @@
+# Parametros de cedim_dock.
+#
+# Nada de lo que hay aqui es una coordenada del mundo. Son tolerancias del
+# detector, ruidos del filtro y ganancias del control. Las unicas cotas
+# fisicas (tamano de las cajas y separacion entre centros) viven en
+# geometry.py y son las que publican las bases.
+
+/**:
+  ros__parameters:
+
+    # --- Percepcion ---------------------------------------------------
+    # 0.5 grados por haz => 8.7 mm de separacion entre ecos a 1 m.
+    beam_spacing_at_1m: 0.008727
+    max_walls: 4                  # paredes que se prueban por barrido
+    min_wall_points: 25
+    wall_inlier_tol: 0.02         # holgura del ajuste de la pared (m)
+    ransac_iterations: 120
+    max_wall_range: 3.0           # mas alla, 8 cm no llegan a 2 ecos
+    min_protrusion: 0.035         # saliente minimo para contar como caja (m)
+    max_protrusion: 0.13
+    cluster_gap: 0.035            # corte entre grupos de ecos (m)
+    min_cluster_points: 2
+    front_face_tol: 0.015        # banda de la cara frontal dentro de un grupo (m)
+    max_cluster_span: 0.14        # una caja nunca es mas ancha que esto (m)
+    separation_tol: 0.04          # holgura sobre los 17.5 cm entre centros
+    min_quality: 0.35
+    nominal_wall_points: 120
+
+    # --- Estimador ----------------------------------------------------
+    drift_xy: 0.01                # deriva de odometria (m/s^0.5)
+    drift_theta: 0.01             # (rad/s^0.5)
+    sigma_wall_normal: 0.004      # la distancia a la pared sale muy fina
+    sigma_lateral_floor: 0.006    # suelo del centrado lateral
+    sigma_theta_at_1m: 0.012
+    min_quality_scale: 0.2
+    gate_after_updates: 5
+    gate_threshold: 16.0          # chi2 con 3 g.l., holgado a proposito
+    min_updates: 6
+    confident_sigma_xy: 0.05
+    confident_sigma_theta: 0.06
+
+    # --- Control: busqueda y aproximacion -----------------------------
+    search_omega: 0.9             # rad/s, barrido de 360 grados en ~7 s
+    standoff_distance: 0.75       # punto de espera sobre el eje (m)
+    standoff_distance_tol: 0.08
+    standoff_lateral_tol: 0.03
+    standoff_heading_tol: 0.06
+    turn_in_place_angle: 0.7
+    rho_settled: 0.06
+    k_rho: 0.7
+    k_alpha: 1.5
+    k_beta: -0.5                  # negativo: lo exige la estabilidad del lazo
+    k_beta_final: 1.2
+    v_max_approach: 0.30          # el Create 3 admite 0.46; no hace falta
+    w_max: 1.2
+
+    # --- Control: entrada ---------------------------------------------
+    dock_stop_distance: 0.266     # centro del robot al plano de la pared (m)
+    k_v_enter: 0.45
+    v_min_enter: 0.05
+    v_max_enter: 0.18
+    k_heading_enter: 1.0
+    k_lateral_enter: 2.0
+    w_enter_max: 0.6
+    abort_below_remaining: 0.15   # sin recorrido para corregir: aborta
+    abort_lateral: 0.02
+    settle_seconds: 3.0           # empuje final contra la rampa
+    settle_speed: 0.04
+    w_settle: 0.15
+
+    # --- Seguridad y limites ------------------------------------------
+    recover_seconds: 1.0
+    recover_speed: 0.08
+    control_rate: 20.0
+    scan_timeout: 0.5             # sin LiDAR, el robot se para
+    run_timeout: 175.0            # el limite de las bases es 180 s
