@@ -127,9 +127,15 @@ desvío justo donde el margen es de 8 mm. Por eso la maniobra va en dos tramos:
 | Estado | Qué hace |
 |---|---|
 | `SEARCH` | Gira sobre sí mismo hasta que el filtro converge sobre la firma del marcador. |
+| `EXPLORE` | Si completa una vuelta entera sin encontrarla, avanza hacia el sector más despejado. La sala mide 6 × 4 m y el marcador solo es resoluble dentro de ~3.5 m: desde el fondo, girar más no sirve de nada. |
 | `APPROACH` | Regulación polar hasta un **punto de espera sobre el eje del dock**, a 0.75 m y de frente, donde las tolerancias son holgadas. |
 | `ENTER` | **Seguimiento de recta** sobre el eje: el error lateral se corrige a lo largo de todo el tramo y llega a cero antes del contacto. |
 | `RECOVER` | Ante un contacto, retrocede y repite la aproximación. Una colisión cuesta 10 puntos. |
+
+Las maniobras de escape —salir de un punto muerto en el punto de espera, explorar—
+van **acotadas en el tiempo y en lazo abierto**. Es deliberado: una maniobra gobernada
+por la propia distancia al objetivo realimenta la decisión que la disparó y el robot
+acaba oscilando alrededor del umbral en vez de salir.
 
 Si a mitad de la entrada el error lateral sigue fuera de margen, el nodo **aborta y repite** en vez
 de acoplar mal: quedan 180 s por corrida y sobra tiempo para un segundo intento.
@@ -163,7 +169,9 @@ ejecución, no se escribe a mano.
 ## Limitaciones conocidas
 
 - **Alcance de la detección.** A 0.5° por haz, una caja de 8 cm deja de dar dos ecos más allá de
-  unos 3 m. Por encima de esa distancia el robot no detecta el marcador y se apoya en la búsqueda.
+  unos 3.5 m —medido en banco, con caída brusca entre 3.5 y 4.5 m—. La sala del reto mide 6 × 4 m,
+  así que desde el fondo el marcador sencillamente no es observable y el robot tiene que acercarse
+  antes de poder verlo. De ahí el estado `EXPLORE`.
 - **Dependencia de la odometría en el tramo final.** Los últimos ~0.2 m se recorren contra el
   estimado anclado en `odom`. Una deriva grande de odometría en ese tramo degradaría la precisión;
   el filtro la absorbe como ruido de proceso, pero no la observa.

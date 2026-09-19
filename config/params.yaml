@@ -15,7 +15,7 @@
     min_wall_points: 25
     wall_inlier_tol: 0.02         # holgura del ajuste de la pared (m)
     ransac_iterations: 120
-    max_wall_range: 3.0           # mas alla, 8 cm no llegan a 2 ecos
+    max_wall_range: 4.0           # medido: la firma aguanta hasta ~3.5 m
     min_protrusion: 0.035         # saliente minimo para contar como caja (m)
     max_protrusion: 0.13
     cluster_gap: 0.035            # corte entre grupos de ecos (m)
@@ -41,6 +41,11 @@
 
     # --- Control: busqueda y aproximacion -----------------------------
     search_omega: 0.9             # rad/s, barrido de 360 grados en ~7 s
+    search_full_turn: 6.6         # rad; una vuelta entera sin exito -> explorar
+    explore_seconds: 6.0          # avance acotado hacia el hueco despejado
+    explore_speed: 0.26
+    explore_heading_tol: 0.15
+    open_sectors: 24              # sectores para buscar el hueco despejado
     standoff_distance: 0.75       # punto de espera sobre el eje (m)
     standoff_distance_tol: 0.08
     standoff_lateral_tol: 0.03
@@ -56,6 +61,7 @@
 
     # --- Control: entrada ---------------------------------------------
     dock_stop_distance: 0.266     # centro del robot al plano de la pared (m)
+    hard_min_distance: 0.24       # nunca avanzar por debajo de esto (m)
     k_v_enter: 0.45
     v_min_enter: 0.05
     v_max_enter: 0.18
@@ -70,6 +76,7 @@
 
     # --- Seguridad y limites ------------------------------------------
     recover_seconds: 1.0
+    deadlock_backup_seconds: 4.0  # salida del punto muerto en el punto de espera
     recover_speed: 0.08
     control_rate: 20.0
     scan_timeout: 0.5             # sin LiDAR, el robot se para

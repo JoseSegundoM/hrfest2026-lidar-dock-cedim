@@ -46,7 +46,7 @@ DEFAULTS = {
     'min_wall_points': 25,
     'wall_inlier_tol': 0.02,
     'ransac_iterations': 120,
-    'max_wall_range': 3.0,
+    'max_wall_range': 4.0,
     'min_protrusion': 0.035,
     'max_protrusion': 0.13,
     'cluster_gap': 0.035,
@@ -68,6 +68,11 @@ DEFAULTS = {
     'confident_sigma_xy': 0.05,
     'confident_sigma_theta': 0.06,
     'search_omega': 0.9,
+    'search_full_turn': 6.6,
+    'explore_seconds': 6.0,
+    'explore_speed': 0.26,
+    'explore_heading_tol': 0.15,
+    'open_sectors': 24,
     'standoff_distance': 0.75,
     'standoff_distance_tol': 0.08,
     'standoff_lateral_tol': 0.03,
@@ -81,6 +86,7 @@ DEFAULTS = {
     'v_max_approach': 0.30,
     'w_max': 1.2,
     'dock_stop_distance': 0.266,
+    'hard_min_distance': 0.24,
     'k_v_enter': 0.45,
     'v_min_enter': 0.05,
     'v_max_enter': 0.18,
@@ -93,6 +99,7 @@ DEFAULTS = {
     'settle_speed': 0.04,
     'w_settle': 0.15,
     'recover_seconds': 1.0,
+    'deadlock_backup_seconds': 4.0,
     'recover_speed': 0.08,
     'control_rate': 20.0,
     'scan_timeout': 0.5,
@@ -125,6 +132,7 @@ class DockingNode(Node):
         self.laser_offset = None        # (x, y, yaw) de laser_link en base_link
 
         self.odom_pose = None
+        self.free_bearing = None
         self.last_scan_time = None
         self.last_estimator_time = None
         self.started_at = None
@@ -200,6 +208,7 @@ class DockingNode(Node):
         points = self._scan_to_base(msg)
         if len(points) < self.p['min_wall_points']:
             return
+        self.free_bearing = self._open_bearing(points)
 
         dt = 0.0 if self.last_estimator_time is None else now - self.last_estimator_time
         self.last_estimator_time = now
@@ -230,7 +239,7 @@ class DockingNode(Node):
                         if self.odom_pose is not None else None)
         v, w = self.controller.step(
             dock_in_base, self.estimator.confident(),
-            1.0 / float(self.p['control_rate']), now)
+            1.0 / float(self.p['control_rate']), now, self.free_bearing)
         self._publish(v, w)
 
         if self.controller.state is State.DOCKED:
@@ -279,6 +288,31 @@ class DockingNode(Node):
         ranges, angles = ranges[valid], angles[valid]
         local = np.column_stack((ranges * np.cos(angles), ranges * np.sin(angles)))
         return transform_points(local, *self.laser_offset)
+
+    def _open_bearing(self, points):
+        """Rumbo del sector mas despejado que ve el LiDAR, en ``base_link``.
+
+        Se divide el barrido en sectores y se toma el alcance **minimo** de
+        cada uno; gana el sector cuyo minimo es mayor. Usar el maximo absoluto
+        elegiria un unico eco afortunado que se cuela por un hueco estrecho,
+        que es justo por donde el robot no cabe.
+        """
+        bearings = np.arctan2(points[:, 1], points[:, 0])
+        ranges = np.hypot(points[:, 0], points[:, 1])
+        n_sectors = int(self.p['open_sectors'])
+        index = ((bearings + math.pi) / (2.0 * math.pi) * n_sectors).astype(int)
+        index = np.clip(index, 0, n_sectors - 1)
+
+        best_bearing, best_clearance = None, -1.0
+        for sector in range(n_sectors):
+            mask = index == sector
+            if not mask.any():
+                continue
+            clearance = float(ranges[mask].min())
+            if clearance > best_clearance:
+                best_clearance = clearance
+                best_bearing = float(np.median(bearings[mask]))
+        return best_bearing
 
     def _log_progress(self, dock_in_base):
         distance, lateral, heading = axis_errors(dock_in_base)

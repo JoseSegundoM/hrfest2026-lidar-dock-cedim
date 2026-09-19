@@ -23,6 +23,7 @@ from .geometry import wrap_angle
 
 class State(Enum):
     SEARCH = 'SEARCH'
+    EXPLORE = 'EXPLORE'
     APPROACH = 'APPROACH'
     ENTER = 'ENTER'
     RECOVER = 'RECOVER'
@@ -57,6 +58,9 @@ class DockController:
         self.recover_until = None
         self.settle_elapsed = 0.0
         self.attempts = 0
+        self.search_rotation = 0.0
+        self.explore_until = None
+        self.explore_heading = None
 
     def reset_to_approach(self):
         self.state = State.APPROACH
@@ -77,8 +81,12 @@ class DockController:
 
     # -- ciclo de control --------------------------------------------------
 
-    def step(self, dock_in_base, confident, dt, now):
-        """Un ciclo de control. Devuelve ``(v, w)`` en m/s y rad/s."""
+    def step(self, dock_in_base, confident, dt, now, free_bearing=None):
+        """Un ciclo de control. Devuelve ``(v, w)`` en m/s y rad/s.
+
+        ``free_bearing`` es el rumbo del hueco mas despejado que ve el LiDAR,
+        en ``base_link``. Solo lo usa la exploracion.
+        """
         if self.state is State.DOCKED:
             return 0.0, 0.0
 
@@ -88,11 +96,28 @@ class DockController:
             self.state = State.APPROACH if confident else State.SEARCH
             return 0.0, 0.0
 
+        if self.state is State.EXPLORE:
+            return self._explore(confident, dt, now)
+
         if self.state is State.SEARCH:
             if confident:
                 self.state = State.APPROACH
+                self.search_rotation = 0.0
             else:
-                return 0.0, self.search_direction * self.p['search_omega']
+                w = self.search_direction * self.p['search_omega']
+                self.search_rotation += abs(w) * dt
+                # Una vuelta entera sin enganchar la firma significa que el
+                # marcador esta fuera del alcance util del detector: a 0.5 por
+                # haz, una caja de 8 cm deja de dar dos ecos mas alla de unos
+                # 3.5 m, y la sala mide 6 m de fondo. Girar mas no sirve de
+                # nada; hay que acercarse.
+                if self.search_rotation > self.p['search_full_turn']:
+                    self.state = State.EXPLORE
+                    self.search_rotation = 0.0
+                    self.explore_until = now + self.p['explore_seconds']
+                    self.explore_heading = free_bearing
+                    return 0.0, 0.0
+                return 0.0, w
 
         if dock_in_base is None:
             return 0.0, self.search_direction * self.p['search_omega']
@@ -100,13 +125,38 @@ class DockController:
         distance, lateral, heading = axis_errors(dock_in_base)
 
         if self.state is State.APPROACH:
-            return self._approach(dock_in_base, distance, lateral, heading, dt)
+            return self._approach(dock_in_base, distance, lateral, heading, dt, now)
 
         return self._enter(distance, lateral, heading, dt)
 
+    def _explore(self, confident, dt, now):
+        """Avanza hacia el hueco mas despejado para acercarse a las paredes.
+
+        Acotado en el tiempo y en lazo abierto sobre un rumbo fijado al
+        entrar, que se va corrigiendo con la propia rotacion del robot. Una
+        maniobra que persiguiese el maximo alcance barrido a barrido cambiaria
+        de objetivo en cada ciclo y no avanzaria.
+        """
+        if confident:
+            self.state = State.APPROACH
+            return 0.0, 0.0
+        if now >= self.explore_until:
+            self.state = State.SEARCH
+            return 0.0, 0.0
+        if self.explore_heading is None:
+            self.state = State.SEARCH
+            return 0.0, 0.0
+
+        error = wrap_angle(self.explore_heading)
+        if abs(error) > self.p['explore_heading_tol']:
+            w = _clamp(self.p['k_alpha'] * error, -self.p['w_max'], self.p['w_max'])
+            self.explore_heading = wrap_angle(self.explore_heading - w * dt)
+            return 0.0, w
+        return self.p['explore_speed'], 0.0
+
     # -- tramos ------------------------------------------------------------
 
-    def _approach(self, dock_in_base, distance, lateral, heading, dt):
+    def _approach(self, dock_in_base, distance, lateral, heading, dt, now):
         """Regulacion polar hasta el punto de espera sobre el eje."""
         standoff = self.p['standoff_distance']
 
@@ -134,9 +184,19 @@ class DockController:
                                -self.p['w_max'], self.p['w_max'])
 
         if rho < self.p['rho_settled']:
-            # Sobre el punto de espera: solo queda cuadrar el rumbo.
-            return 0.0, _clamp(self.p['k_beta_final'] * wrap_angle(goal_theta),
-                               -self.p['w_max'], self.p['w_max'])
+            if abs(lateral) < self.p['standoff_lateral_tol']:
+                # Sobre el punto de espera y centrado: solo queda el rumbo.
+                return 0.0, _clamp(self.p['k_beta_final'] * wrap_angle(goal_theta),
+                                   -self.p['w_max'], self.p['w_max'])
+            # Punto muerto: ha llegado al punto de espera pero sigue fuera del
+            # eje, y un robot diferencial no corrige un desvio lateral sin
+            # avanzar. Retrocede en lazo abierto durante un tiempo fijo para
+            # recuperar recorrido. Acotado en tiempo a proposito: una maniobra
+            # gobernada por la propia distancia oscilaria sobre el umbral.
+            self.state = State.RECOVER
+            self.recover_until = now + self.p['deadlock_backup_seconds']
+            self.attempts += 1
+            return 0.0, 0.0
 
         v = self.p['k_rho'] * rho * math.cos(alpha)
         w = self.p['k_alpha'] * alpha + self.p['k_beta'] * beta
@@ -161,7 +221,11 @@ class DockController:
             # En la pose de acoplamiento pero sin confirmacion del dock:
             # empuja muy despacio contra la rampa durante un margen acotado.
             self.settle_elapsed += dt
-            if self.settle_elapsed > self.p['settle_seconds']:
+            # Acotado por tiempo **y** por distancia. Solo por tiempo, si el
+            # dock nunca confirma el acoplamiento el robot sigue empujando
+            # hasta incrustarse en la pared.
+            if (self.settle_elapsed > self.p['settle_seconds']
+                    or distance < self.p['hard_min_distance']):
                 return 0.0, 0.0
             return self.p['settle_speed'], _clamp(
                 self.p['k_heading_enter'] * heading,
