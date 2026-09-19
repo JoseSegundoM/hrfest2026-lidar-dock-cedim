@@ -140,6 +140,35 @@ acaba oscilando alrededor del umbral en vez de salir.
 Si a mitad de la entrada el error lateral sigue fuera de margen, el nodo **aborta y repite** en vez
 de acoplar mal: quedan 180 s por corrida y sobra tiempo para un segundo intento.
 
+## Resultados
+
+**Gazebo Classic 11, escenario oficial sin modificar.** El acoplamiento lo declara
+`/dock_status.is_docked`, que es el criterio del reto: el plugin del simulador comprueba
+los umbrales de 7.5 cm y ±6°.
+
+| Pose inicial (x, y, yaw) | Distancia al dock | Resultado | Tiempo |
+|---|---:|---|---:|
+| `(0.4113, −0.1825, 20.6°)` — la de fábrica | 1.44 m | acoplado | 15.8 s |
+| `(0.20, 0.90, −68.8°)` | 1.65 m | acoplado | 16.3 s |
+| `(−1.60, 1.10, 143.2°)` | 3.55 m | acoplado | 21.0 s |
+| `(−2.80, −1.30, 11.5°)` | 4.75 m | acoplado (con exploración) | 34.2 s |
+
+Son **cuatro corridas**: suficientes para comprobar que el lazo cierra en el simulador real
+desde poses muy distintas, no para dar una tasa de éxito.
+
+**Banco de lazo cerrado a nivel ROS**, 24 poses aleatorias en la sala de 6 × 4 m. Replica el
+montaje real del LiDAR y traza los rayos contra la geometría del escenario, pero integra la
+cinemática del robot sin modelar deslizamiento de ruedas ni la rampa del dock:
+
+| | Acopladas | Tiempo medio | Tiempo máx | Lateral máx | Angular máx | Colisiones |
+|---|---|---:|---:|---:|---:|---:|
+| Arranques a < 3.4 m | 12/12 | 14.5 s | 17.1 s | 5.01 mm | 0.64° | 0 |
+| Arranques a ≥ 3.4 m | 12/12 | 29.9 s | 41.9 s | 3.41 mm | 0.41° | 0 |
+| **Total** | **24/24** | 22.2 s | 41.9 s | 5.01 mm | 0.64° | **0** |
+
+Contra los márgenes de las bases —7.9 mm laterales y 6°— el peor caso deja un factor de 1.6×
+en lateral y de 9× en angular. El lateral es el que manda, y es el que conviene vigilar.
+
 ## Cumplimiento de las bases
 
 | Interfaz | Uso |
