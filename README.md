@@ -40,13 +40,27 @@ A la distancia de acoplamiento, esos **± 6° son menos de 8 mm de desvío later
 
 ## Arranque rápido
 
-```bash
-# Terminal 1 — el escenario oficial del reto, sin modificar
-ros2 launch create3_dock_challenge challenge_world.launch.py
+Hacen falta **dos terminales**. En cada una hay que cargar el espacio de trabajo antes de
+lanzar; si tu `.bashrc` ya carga otro workspace, esta línea lo deja por encima y todo funciona.
 
-# Terminal 2 — nuestra solución: un único comando
+**Terminal 1** — el escenario oficial del reto, sin modificar:
+
+```bash
+source ~/sim_ws/install/setup.bash
+ros2 launch create3_dock_challenge challenge_world.launch.py
+```
+
+Espera a que abran Gazebo y RViz. Esa terminal queda ocupada.
+
+**Terminal 2** — nuestra solución, el **comando único** que piden las bases:
+
+```bash
+source ~/sim_ws/install/setup.bash
 ros2 launch cedim_dock solution.launch.py
 ```
+
+El robot busca la firma del marcador, se aproxima y acopla. Termina cuando el nodo imprime
+`acoplado: /dock_status confirma is_docked`.
 
 ## Instalación
 
