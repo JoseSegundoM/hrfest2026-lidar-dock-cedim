@@ -149,12 +149,22 @@ los umbrales de 7.5 cm y ±6°.
 | Pose inicial (x, y, yaw) | Distancia al dock | Resultado | Tiempo |
 |---|---:|---|---:|
 | `(0.4113, −0.1825, 20.6°)` — la de fábrica | 1.44 m | acoplado | 15.8 s |
+| `(1.60, 0.30, 90.0°)` — pegado a la pared | 0.35 m | acoplado | 24.5 s |
+| `(1.20, −0.80, 171.9°)` — de espaldas | 0.75 m | acoplado | 15.5 s |
 | `(0.20, 0.90, −68.8°)` | 1.65 m | acoplado | 16.3 s |
+| `(−0.80, −1.50, 85.9°)` | 2.75 m | acoplado | 18.8 s |
 | `(−1.60, 1.10, 143.2°)` | 3.55 m | acoplado | 21.0 s |
 | `(−2.80, −1.30, 11.5°)` | 4.75 m | acoplado (con exploración) | 34.2 s |
+| `(−3.20, 1.50, −114.6°)` — esquina lejana | 5.15 m | acoplado (con exploración) | 46.3 s |
 
-Son **cuatro corridas**: suficientes para comprobar que el lazo cierra en el simulador real
-desde poses muy distintas, no para dar una tasa de éxito.
+**Ocho corridas, ocho acoplamientos.** Son suficientes para comprobar que el lazo cierra en el
+simulador real desde poses muy distintas —incluida una a 0.35 m de la pared, sin recorrido para
+corregir, y otra en la esquina opuesta de la sala— pero no para dar una tasa de éxito.
+
+La última se pasa 1.3 s del umbral de 45 s a partir del cual se empiezan a perder puntos de
+tiempo. Desde la esquina más lejana el robot tiene que recorrer cinco metros antes de que el
+marcador sea siquiera observable, y se ha preferido no acelerar la aproximación: el coste son
+unas décimas del apartado de tiempo, y subir la velocidad pone en riesgo los otros 75 puntos.
 
 **Banco de lazo cerrado a nivel ROS**, 72 poses aleatorias en la sala de 6 × 4 m repartidas en
 dos conjuntos independientes. Replica el montaje real del LiDAR y traza los rayos contra la
