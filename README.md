@@ -247,7 +247,7 @@ ejecución, no se escribe a mano.
 | Integrante | Correo | GitHub |
 |---|---|---|
 | José Luis Segundo Manayay | jose.segundo.m@uni.pe | [@JoseSegundoM](https://github.com/JoseSegundoM) |
-| Luis Angel Vilcamiche Fernández | luis.vilcamiche.f@uni.pe | — |
+| Luis Ángel Vilcamiche Fernández | luis.vilcamiche.f@uni.pe | [@luisvilcamiche](https://github.com/luisvilcamiche) |
 | Javier Yanpier Garay Yovera | javier.garay.y@uni.pe | [@garx17](https://github.com/garx17) |
 | Francisco Jesús Rodríguez Huiman | francisco.rodriguez.h@uni.pe | [@frodriguezhuiman-lgtm](https://github.com/frodriguezhuiman-lgtm) |
 
