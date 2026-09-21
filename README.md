@@ -156,18 +156,24 @@ los umbrales de 7.5 cm y ±6°.
 Son **cuatro corridas**: suficientes para comprobar que el lazo cierra en el simulador real
 desde poses muy distintas, no para dar una tasa de éxito.
 
-**Banco de lazo cerrado a nivel ROS**, 24 poses aleatorias en la sala de 6 × 4 m. Replica el
-montaje real del LiDAR y traza los rayos contra la geometría del escenario, pero integra la
-cinemática del robot sin modelar deslizamiento de ruedas ni la rampa del dock:
+**Banco de lazo cerrado a nivel ROS**, 72 poses aleatorias en la sala de 6 × 4 m repartidas en
+dos conjuntos independientes. Replica el montaje real del LiDAR y traza los rayos contra la
+geometría del escenario, pero integra la cinemática del robot sin modelar deslizamiento de
+ruedas ni la rampa del dock:
 
 | | Acopladas | Tiempo medio | Tiempo máx | Lateral máx | Angular máx | Colisiones |
 |---|---|---:|---:|---:|---:|---:|
-| Arranques a < 3.4 m | 12/12 | 14.5 s | 17.1 s | 5.01 mm | 0.64° | 0 |
-| Arranques a ≥ 3.4 m | 12/12 | 29.9 s | 41.9 s | 3.41 mm | 0.41° | 0 |
-| **Total** | **24/24** | 22.2 s | 41.9 s | 5.01 mm | 0.64° | **0** |
+| Arranques a < 3.4 m | 36/36 | 14.1 s | 19.0 s | 5.49 mm | 0.73° | 0 |
+| Arranques a ≥ 3.4 m | 36/36 | 31.3 s | 41.9 s | 4.95 mm | 0.60° | 0 |
+| **Total** | **72/72** | 22.7 s | 41.9 s | 5.49 mm | 0.73° | **0** |
 
-Contra los márgenes de las bases —7.9 mm laterales y 6°— el peor caso deja un factor de 1.6×
-en lateral y de 9× en angular. El lateral es el que manda, y es el que conviene vigilar.
+Ninguna corrida pasó de 45 s, que es el umbral por encima del cual se empiezan a perder puntos
+de tiempo. Contra los márgenes de las bases —7.9 mm laterales y 6°— el peor caso deja un factor
+de **1.44× en lateral** y de 8× en angular.
+
+**El lateral es el que manda y no es holgado.** La mediana está en 3 mm y el percentil 90 en
+5 mm, así que el reparto está lejos del umbral, pero un escenario que castigue la geometría más
+que los probados es el sitio por donde esto fallaría. Es el riesgo residual conocido.
 
 ## Cumplimiento de las bases
 
