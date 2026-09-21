@@ -17,7 +17,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Equipo CEDIM',
-    maintainer_email='JoseSegundoM@users.noreply.github.com',
+    maintainer_email='jose.segundo.m@uni.pe',
     description='Docking autonomo del iRobot Create 3 guiado unicamente por LiDAR.',
     license='Apache-2.0',
     tests_require=['pytest'],

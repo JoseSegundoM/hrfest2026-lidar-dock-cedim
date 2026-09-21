@@ -10,7 +10,7 @@
     firma geometrica de las dos cajas marcadoras, lo que permite ejecutar el
     tramo final de aproximacion cuando el marcador deja de ser resoluble.
   </description>
-  <maintainer email="JoseSegundoM@users.noreply.github.com">Equipo CEDIM</maintainer>
+  <maintainer email="jose.segundo.m@uni.pe">Equipo CEDIM</maintainer>
   <license>Apache-2.0</license>
 
   <exec_depend>rclpy</exec_depend>

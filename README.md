@@ -241,13 +241,15 @@ ejecución, no se escribe a mano.
 
 ## Equipo
 
-**CEDIM** · Centro de Desarrollo e Investigación en Mecatrónica · Lima, Perú
+**CEDIM** — Centro de Desarrollo e Investigación en Mecatrónica
+**Universidad Nacional de Ingeniería** · Lima, Perú
 
-| Integrante | GitHub |
-|---|---|
-| José Luis Segundo Manayay | [@JoseSegundoM](https://github.com/JoseSegundoM) |
-| Francisco Jesús Rodríguez Huiman | [@frodriguezhuiman-lgtm](https://github.com/frodriguezhuiman-lgtm) |
-| Javier Yanpier Garay Yovera | [@garx17](https://github.com/garx17) |
+| Integrante | Correo | GitHub |
+|---|---|---|
+| José Luis Segundo Manayay | jose.segundo.m@uni.pe | [@JoseSegundoM](https://github.com/JoseSegundoM) |
+| Luis Angel Vilcamiche Fernández | luis.vilcamiche.f@uni.pe | — |
+| Javier Yanpier Garay Yovera | javier.garay.y@uni.pe | [@garx17](https://github.com/garx17) |
+| Francisco Jesús Rodríguez Huiman | francisco.rodriguez.h@uni.pe | [@frodriguezhuiman-lgtm](https://github.com/frodriguezhuiman-lgtm) |
 
 ## Licencia
 
